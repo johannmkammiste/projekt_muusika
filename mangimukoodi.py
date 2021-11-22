@@ -15,34 +15,37 @@ def openfile(entryBox):
 def kirjutafail(failinimi, nootidestream):
     uus_fail = failinimi.split("/")[-1].replace(".py", ".mid")
     nootidestream.write('midi', fp=uus_fail)
+    return uus_fail
 
 def mangimukoodi():
     failinimi = kirjuta_failinimi.get()
-    fail = open(failinimi, "r+", encoding="UTF-8")
-    failisisu = fail.readlines()
+    with open(failinimi, "r+", encoding="UTF-8") as f:
+        failisisu = f.readlines()
     rea_noodid = []
     akord = []
-    rida = 0
     reanr = 108
     alampiir = 21  # MIDIS on 0-127 nooti, aga klaveri nootidest on 21 kuni 108
     akordid = chord.Chord()
     for line in failisisu:
         puhas = line.strip("\n").split()
-        rida += 1
         akordinoodid = []
+        if reanr < alampiir:
+            reanr = 108
         for el in puhas:
             pausinoot = note.Rest(quarterLength=1/8)
-            noodid = note.Note(reanr - rida, quarterLength=len(el)/4)
+            noodid = note.Note(reanr, quarterLength=len(el)/4)
             rea_noodid.append(noodid)
             rea_noodid.append(pausinoot)
+        reanr -= 1
     nootidestream.append(rea_noodid)
-    kirjutafail(failinimi, nootidestream)
+    uus_faili_nimi = kirjutafail(failinimi, nootidestream)
     if tk.messagebox.askyesno("Kuulda?", "Kood konverteeritud! Kas soovid ka seda kuulda?") == True:
+        pygame.init()
+        pygame.mixer.init()
         screen = pygame.display.set_mode ((600,375),0,32)
-        pygame.mixer.music.load(uus_fail)
+        pygame.mixer.music.load(uus_faili_nimi)
         pygame.mixer.music.play()
     
-
 #GUI
 root= tk.Tk()
 root.title("Mängi mu koodi!")
