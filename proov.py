@@ -15,34 +15,53 @@ def openfile(entryBox):
 def kirjutafail(failinimi, nootidestream):
     uus_fail = failinimi.split("/")[-1].replace(".py", ".mid")
     nootidestream.write('midi', fp=uus_fail)
+    return uus_fail
+
+def noodidveerust(veerunr, failinimi):
+    with open(failinimi, "r+", encoding="UTF-8") as f:
+        failisisu = f.readlines()
+    noodid = []
+    akord = chord.Chord()
+    reanr = 108
+    alampiir = 21  # MIDIS on 0-127 nooti, aga klaveri nootidest on 21 kuni 108
+    for line in failisisu:
+        if line == "\n":
+            puhas = line
+            noot = note.Note(reanr, quarterLength=len("\n")/8)
+            noodid.append(noot)
+        else:
+            puhas = line.strip("\n").split()
+            if reanr < alampiir:
+                reanr = 108
+            try:
+                noot = note.Note(reanr, quarterLength=len(puhas[veerunr])/8)
+                noodid.append(noot)
+            except:
+                continue
+        reanr -= 1
+    akord.add(noodid, runSort=False)
+    return akord
 
 def mangimukoodi():
     failinimi = kirjuta_failinimi.get()
-    fail = open(failinimi, "r+", encoding="UTF-8")
-    failisisu = fail.readlines()
-    rea_noodid = []
-    akord = []
-    rida = 0
-    reanr = 108
-    alampiir = 21  # MIDIS on 0-127 nooti, aga klaveri nootidest on 21 kuni 108
+    with open(failinimi, "r+", encoding="UTF-8") as f:
+        failisisu = f.readlines()
     akordid = chord.Chord()
-    for line in failisisu:
-        puhas = line.strip("\n").split()
-        rida += 1
-        akordinoodid = []
-        for el in puhas:
-            pausinoot = note.Rest(quarterLength=1/8)
-            noodid = note.Note(reanr - rida, quarterLength=len(el)/4)
-            rea_noodid.append(noodid)
-            rea_noodid.append(pausinoot)
-    nootidestream.append(rea_noodid)
-    kirjutafail(failinimi, nootidestream)
+    for i in range(len(failisisu)):
+        akord = noodidveerust(i, failinimi)
+        pausinoot = note.Rest()
+        nootidestream.append(akord)
+        nootidestream.append(pausinoot)
+    uus_faili_nimi = kirjutafail(failinimi, nootidestream)
     if tk.messagebox.askyesno("Kuulda?", "Kood konverteeritud! Kas soovid ka seda kuulda?") == True:
+        pygame.init()
+        pygame.mixer.init()
         screen = pygame.display.set_mode ((600,375),0,32)
-        pygame.mixer.music.load(uus_fail)
+        pygame.mixer.music.load(uus_faili_nimi)
         pygame.mixer.music.play()
     
-
+    
+mangimukoodi()
 #GUI
 root= tk.Tk()
 root.title("Mängi mu koodi!")
