@@ -1,40 +1,60 @@
 import sys
 import pygame
-import numpy as np
 from music21 import instrument, note, chord, stream
+import tkinter as tk
+from tkinter import ttk
+from tkinter import filedialog
+from functools import partial
+nootidestream = stream.Stream()
 
-def pikimrida(failinimi):
-    pikkus = 0
-    failisisu = open(failinimi, "r+", encoding="UTF-8")
-    for rida in failisisu:
-        if len(rida) > pikkus:
-            pikkus = len(rida)
-    return pikkus
+def openfile(entryBox):
+    filename = filedialog.askopenfilename()
+    entryBox.delete(0, tk.END)
+    entryBox.insert(tk.END, filename)
 
-def mangimukoodi(failinimi):
-    fail = open(failinimi, "r+", encoding="UTF-8")
-    failisisu= fail.readlines()
-    pikimpikkus = pikimrida(failinimi)
-    failipikkus = len(failisisu)
-    noodistikupikkus = 0
-    if pikimpikkus > failipikkus:
-        noodistikupikkus = pikimpikkus
-    elif pikimpikkus <= failipikkus:
-        noodistikupikkus = failipikkus
-    nootidestream = stream.Stream() #stream on nootide list pmst.
+def kirjutafail(failinimi, nootidestream):
+    uus_fail = failinimi.split("/")[-1].replace(".py", ".mid")
+    nootidestream.write('midi', fp=uus_fail)
+    return uus_fail
+
+def mangimukoodi():
+    failinimi = kirjuta_failinimi.get()
+    with open(failinimi, "r+", encoding="UTF-8") as f:
+        failisisu = f.readlines()
+    rea_noodid = []
+    akord = []
+    reanr = 108
+    alampiir = 21  # MIDIS on 0-127 nooti, aga klaveri nootidest on 21 kuni 108
     akordid = chord.Chord()
-    akordidemaatriks = np.array([], ndmin=noodistikupikkus)
-    alampiir = 21 #MIDIS on 0-127 nooti, aga klaveri nootidest on 21 kuni 108
-    for rida in failisisu:
-        realemendid = []
-        reaelemendid = rida.split()
-        if len(reaelemendid) < pikimpikkus:
-            pikkusevahe = pikimpikkus - len(reaelemendid)
-            for i in range(pikkusevahe):
-                reaelemendid.append("^0^")
-            np.r_[akordidemaatriks,[reaelemendid]]
+    for line in failisisu:
+        puhas = line.strip("\n").split()
+        akordinoodid = []
+        if reanr < alampiir:
+            reanr = 108
+        for el in puhas:
+            pausinoot = note.Rest(quarterLength=1/8)
+            noodid = note.Note(reanr, quarterLength=len(el)/4)
+            rea_noodid.append(noodid)
+            rea_noodid.append(pausinoot)
+        reanr -= 1
+    nootidestream.append(rea_noodid)
+    uus_faili_nimi = kirjutafail(failinimi, nootidestream)
+    if tk.messagebox.askyesno("Kuulda?", "Kood konverteeritud! Kas soovid ka seda kuulda?") == True:
+        pygame.init()
+        pygame.mixer.init()
+        screen = pygame.display.set_mode ((600,375),0,32)
+        pygame.mixer.music.load(uus_faili_nimi)
+        pygame.mixer.music.play()
+    
+#GUI
+root= tk.Tk()
+root.title("Mängi mu koodi!")
+root.geometry("500x200")
+kirjuta_failinimi = tk.Entry(root, text="Failinimi", font=('Arial', 20))
+kirjuta_failinimi.grid(row=1)
+vali_fail_nupp = ttk.Button(root, text="Vali fail", command=partial(openfile, kirjuta_failinimi))
+vali_fail_nupp.grid(row=0, sticky=tk.W, pady=4)
+mangi_koodi = ttk.Button(root, text='Mängi mu koodi!', command=mangimukoodi)
+mangi_koodi.grid(row=2, sticky=tk.W, pady=4)
 
-    print(akordidemaatriks)
- 
-failinimi = input("Sisesta faili nimi, mida tahad kuulda: ")    
-mangimukoodi(failinimi)
+root.mainloop()
