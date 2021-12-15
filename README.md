@@ -1,4 +1,4 @@
-# Project: mängi mu koodi (play my code)
+# Project: mängi mu koodi - play my code
 
 Python project to convert Python code into MIDI files. Aim of the project was to hear how does python code "sound".
 
