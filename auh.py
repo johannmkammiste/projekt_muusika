@@ -6,7 +6,7 @@ elemendid = "AaBbCcDdeEfFgGhHiIjJkKlLmMnNoOpPqQrRsSšŠzZžŽtTuUvVWwõÕäÄö�
 lst = list(elemendid)
 pikkus = len(lst)
 
-def mangimukoodi(failinimi):
+def mangimukoodisu(failinimi):
     fail = open(failinimi, "r+", encoding="UTF-8")
     stream1 = stream.Stream() 
     for rida in fail:

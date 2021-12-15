@@ -1,5 +1,6 @@
 import sys
 import pygame
+import random
 from music21 import instrument, note, chord, stream
 import tkinter as tk
 from tkinter import ttk
@@ -16,6 +17,30 @@ def kirjutafail(failinimi, nootidestream):
     uus_fail = failinimi.split("/")[-1].replace(".py", ".mid")
     nootidestream.write('midi', fp=uus_fail)
     return uus_fail
+
+elemendid = "AaBbCcDdeEfFgGhHiIjJkKlLmMnNoOpPqQrRsSšŠzZžŽtTuUvVWwõÕäÄöÖüÜx\"XyY<>*,._#¤%&/?!-;:^'1234567890´=`\{}()[]€+$£@ˇ~ ½"
+lst = list(elemendid)
+pikkus = len(lst)
+
+def mangimukoodirandom():
+    failinimi = kirjuta_failinimi.get()
+    with open(failinimi, "r+", encoding="UTF-8") as fail:
+        for rida in fail:
+            puhas = rida.strip()
+            failisisu = puhas.split(" ")
+            for el in failisisu:
+                for i in el:
+                    kus = random.randrange(0, pikkus)
+                    noot = note.Note(kus)
+                    noot.duration.quarterLength = 1 / 8
+                    nootidestream.append(noot)
+    uus_faili_nimi = kirjutafail(failinimi, nootidestream)
+    if tk.messagebox.askyesno("Kuulda?", "Kood konverteeritud! Kas soovid ka seda kuulda?") == True:
+        pygame.init()
+        pygame.mixer.init()
+        screen = pygame.display.set_mode ((600,375),0,32)
+        pygame.mixer.music.load(uus_faili_nimi)
+        pygame.mixer.music.play()
 
 def mangimukoodi():
     failinimi = kirjuta_failinimi.get()
@@ -55,6 +80,8 @@ kirjuta_failinimi.grid(row=1)
 vali_fail_nupp = ttk.Button(root, text="Vali fail", command=partial(openfile, kirjuta_failinimi))
 vali_fail_nupp.grid(row=0, sticky=tk.W, pady=4)
 mangi_koodi = ttk.Button(root, text='Mängi mu koodi!', command=mangimukoodi)
+mangi_koodi_random = ttk.Button(root, text='Mängi mu koodi (suvakalt)!', command=mangimukoodirandom)
 mangi_koodi.grid(row=2, sticky=tk.W, pady=4)
+mangi_koodi_random.grid(row=2, sticky=tk.E, pady=4)
 
 root.mainloop()
