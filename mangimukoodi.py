@@ -1,14 +1,14 @@
 import sys
 import pygame
 import random
-from music21 import instrument, note, chord, stream
+from music21 import note, stream
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from functools import partial
 nootidestream = stream.Stream()
 
-def openfile(entryBox):
+def openfile(entryBox): #ava sisestatud fail
     filename = filedialog.askopenfilename()
     entryBox.delete(0, tk.END)
     entryBox.insert(tk.END, filename)
@@ -18,6 +18,36 @@ def kirjutafail(failinimi, nootidestream):
     nootidestream.write('midi', fp=uus_fail)
     return uus_fail
 
+def play():
+    pygame.mixer.music.play()
+def stop():
+    pygame.mixer.music.stop()
+def pause():
+    pygame.mixer.music.pause()
+def unpause():
+    pygame.mixer.music.unpause()
+
+def playfail(failinimi):
+    if tk.messagebox.askyesno("Kuulda?", "Kood konverteeritud! Kas soovid ka seda kuulda?") == True:
+        #Music player
+        music_player = tk.Tk()
+        music_player.title("Music Player")
+        music_player.geometry("450x200")
+        pygame.init()
+        pygame.mixer.init()
+        pygame.mixer.music.load(failinimi)
+        pygame.mixer.music.play()
+        play_nupp = tk.Button(music_player, width=4, height=2, text="PLAY", command=play, bg="blue", fg="white")
+        stop_nupp = tk.Button(music_player, width=4, height=2, text="STOP", command=stop, bg="red", fg="white")
+        pause_nupp = tk.Button(music_player, width=4, height=2, text="PAUSE", command=pause, bg="orange", fg="white")
+        unpause_nupp = tk.Button(music_player, width=4, height=2, text="UNPAUSE", command=unpause, bg="orange", fg="white")
+        play_nupp.pack(fill="x")
+        stop_nupp.pack(fill="x")
+        pause_nupp.pack(fill="x")
+        unpause_nupp.pack(fill="x")
+        music_player.mainloop()
+
+#Random versiooni jaoks vajalikud osad
 elemendid = "AaBbCcDdeEfFgGhHiIjJkKlLmMnNoOpPqQrRsSšŠzZžŽtTuUvVWwõÕäÄöÖüÜx\"XyY<>*,._#¤%&/?!-;:^'1234567890´=`\{}()[]€+$£@ˇ~ ½"
 lst = list(elemendid)
 pikkus = len(lst)
@@ -35,25 +65,20 @@ def mangimukoodirandom():
                     noot.duration.quarterLength = 1 / 8
                     nootidestream.append(noot)
     uus_faili_nimi = kirjutafail(failinimi, nootidestream)
-    if tk.messagebox.askyesno("Kuulda?", "Kood konverteeritud! Kas soovid ka seda kuulda?") == True:
-        pygame.init()
-        pygame.mixer.init()
-        screen = pygame.display.set_mode ((600,375),0,32)
-        pygame.mixer.music.load(uus_faili_nimi)
-        pygame.mixer.music.play()
+    playfail(uus_faili_nimi)
 
+#Põhiprogramm
 def mangimukoodi():
     failinimi = kirjuta_failinimi.get()
     with open(failinimi, "r+", encoding="UTF-8") as f:
         failisisu = f.readlines()
     rea_noodid = []
-    akord = []
     reanr = 108
     alampiir = 21  # MIDIS on 0-127 nooti, aga klaveri nootidest on 21 kuni 108
-    akordid = chord.Chord()
     for line in failisisu:
-        puhas = line.strip("\n").split()
-        akordinoodid = []
+        if reanr < alampiir:
+            reanr = 108
+        puhas = line.strip("\n").split(" ")
         if reanr < alampiir:
             reanr = 108
         for el in puhas:
@@ -64,15 +89,10 @@ def mangimukoodi():
         reanr -= 1
     nootidestream.append(rea_noodid)
     uus_faili_nimi = kirjutafail(failinimi, nootidestream)
-    if tk.messagebox.askyesno("Kuulda?", "Kood konverteeritud! Kas soovid ka seda kuulda?") == True:
-        pygame.init()
-        pygame.mixer.init()
-        screen = pygame.display.set_mode ((600,375),0,32)
-        pygame.mixer.music.load(uus_faili_nimi)
-        pygame.mixer.music.play()
-    
+    playfail(uus_faili_nimi)
+
 #GUI
-root= tk.Tk()
+root = tk.Tk()
 root.title("Mängi mu koodi!")
 root.geometry("500x200")
 kirjuta_failinimi = tk.Entry(root, text="Failinimi", font=('Arial', 20))
