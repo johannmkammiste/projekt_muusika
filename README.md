@@ -1,4 +1,4 @@
-# Project: mängi mu koodi - play my code
+# Mängi mu koodi - play my code
 
 Python project to convert Python code into MIDI files. Aim of the project was to hear how does python code "sound".
 
@@ -33,3 +33,5 @@ projekt-muusika
     ```sh
     git clone http://github.com/johannmkammiste/projekt-muusika
     ```
+## Authors
+Johann Mattias Kammiste, Anne-Mari Kasemetsa
